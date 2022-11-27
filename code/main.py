@@ -15,7 +15,7 @@ slooh_password = credentials["slooh"]["password"]
 
 # Set up headless selenium
 options = Options()
-options.headless = False
+options.headless = True
 options.page_load_strategy = "none"
 driver = webdriver.Chrome(options=options)
 

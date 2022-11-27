@@ -21,11 +21,11 @@ class Schedule:
         f_basic, f_adv = format_schedule(self.missions, self.advanced_missions)
 
         if len(self.missions) > 0 and len(self.advanced_missions) > 0:
-            return f"┌─[Schedule]────────\n╞═[{len(self.missions)} Basic Missions]\n{f_basic}\n╞═[{len(self.advanced_missions)} Advanced Missions]\n{f_adv}"
+            return f"┌─[Schedule]────────\n╞═[{len(self.missions)} Basic Missions]\n{f_basic}\n╞═[{len(self.advanced_missions)} Advanced Missions]{f_adv}"
 
         elif len(self.missions) > 0 >= len(self.advanced_missions):
             return str(
                 f"┌─[Schedule]────────\n╞═[{len(self.missions)} Basic Missions]\n{f_basic}\n╘═[No Advanced Missions]")
 
         elif len(self.advanced_missions) > 0 >= len(self.missions):
-            return str("┌─[Schedule]────────\n╞═[No Basic Missions]\n╘═[{len(self.advanced_missions)} Advanced Missions]\n{f_adv}")
+            return str(f"┌─[Schedule]────────\n╞═[No Basic Missions]\n╘═[{len(self.advanced_missions)} Advanced Missions]\n{f_adv}")
