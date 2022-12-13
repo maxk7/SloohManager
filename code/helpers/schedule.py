@@ -20,9 +20,10 @@ def format_schedule(mission_list, advanced_mission_list):
 
 
 class Schedule:
-    def __init__(self, mission_list, advanced_mission_list):
+    def __init__(self, mission_list, advanced_mission_list, recent_missions):
         self.missions = mission_list
         self.advanced_missions = advanced_mission_list
+        self.recent_missions = recent_missions
 
     def __str__(self):
         f_basic, f_adv = format_schedule(self.missions, self.advanced_missions)

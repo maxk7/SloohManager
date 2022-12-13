@@ -1,7 +1,7 @@
 import requests
 import json
 import yaml
-
+from datetime import datetime, timedelta
 from notion_errors import *
 from notion_page import NotionPage
 
@@ -27,11 +27,61 @@ def readDatabase(target_databaseId=databaseId):
     data = res.json()
 
     # Uncomment code below for inspecting json
-    # json_object = json.dumps(data, indent=4)
-    # with open("../../database.json", "w") as file:
-    #     file.write(json_object)
+    json_object = json.dumps(data, indent=4)
+    with open("../../database.json", "w") as file:
+        file.write(json_object)
 
     return data
+
+
+preset_database = readDatabase()
+
+
+def addMission(target_mission, mission_type, database):
+    # Select Status
+    if datetime.now() - timedelta(minutes=5) <= target_mission.time_et <= datetime.now():
+        status = "capturing"
+    elif target_mission.time_et + timedelta(minutes=5) <= datetime.now():
+        status = "done"
+    else:
+        status = "waiting"
+
+    # If duplicate entry exists, do not add
+    for object_index in range(0, len(database.objects)):
+        test_entry = database.objects[object_index]
+        if datetime.now() - timedelta(minutes=5) <= test_entry.date:
+            if target_mission.target == test_entry.target:
+                if target_mission.time_et == test_entry.date:
+                    if target_mission.telescope == test_entry.telescope:
+                        return "mission already exists"
+
+    createPage(target_mission.target, target_mission.time_et.strftime("%Y-%m-%dT%H:%M:%S"), status, target_mission.telescope, mission_type)
+    return f"added {target_mission.target}"
+
+
+def updateMission(page, schedule):
+    # First, detect if the photo is currently capturing
+    if datetime.now() - timedelta(minutes=5) <= page.date <= datetime.now():
+        page.status = 'capturing'
+        return
+
+    # Second, detect if mission is done or did not capture
+    # link the database page to its associated mission in Slooh
+    linked_mission = None
+
+    for mission in schedule.recent_missions:
+        if mission.time_et == page.date and mission.target == page.target and mission.telescope == page.telescope:
+            # Found a link
+            linked_mission = mission
+            break
+
+    if linked_mission is not None:  # the mission is over (complete or did not run)
+        if linked_mission.status_message == 'Mission accomplished!\nSee your images.':
+            page.status = 'done'
+        else:
+            page.status = 'did not run'
+
+    updateDatabaseStatus(page)
 
 
 def createPage(title, time, status, telescope, mission_type, target_databaseId=databaseId):

@@ -11,6 +11,7 @@ from schedule import Schedule
 # Build mission schedule
 path_to_mission = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[4]'
 path_to_advanced = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[6]'
+path_to_recent = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[8]'
 
 
 def base_xpath_to_mission_list(base_path):
@@ -30,7 +31,19 @@ def base_xpath_to_mission_list(base_path):
         mission_target = driver.find_element(By.XPATH, mission_xpath + '/div[1]/h4').text
         mission_time = driver.find_element(By.XPATH, mission_xpath + '/div[2]/h4').text
         mission_telescope = driver.find_element(By.XPATH, mission_xpath + '/div[2]/div/h4').text
-        selected_mission_obj = Mission(mission_target, mission_time, mission_telescope, 'normal')
+
+        # Now find specific characteristics for missions in 'Recent Missions' Panel
+        mission_message = None  # assume missions had no completion status yet
+
+        try:
+            # Test is the missions have a status
+            mission_message = driver.find_element(By.XPATH, mission_xpath + '/div[2]/div/div/h4').text
+        except:
+            pass  # the mission is not in the 'Recent Missions' category
+
+        mission_status = mission_message
+
+        selected_mission_obj = Mission(mission_target, mission_time, mission_telescope, 'normal', mission_status)
 
         rlist.append(selected_mission_obj)
         mission_index += 1
@@ -79,7 +92,8 @@ def build_schedule():
     # Actual process of building the schedule
     mission_list = base_xpath_to_mission_list(path_to_mission)
     advanced_mission_list = base_xpath_to_mission_list(path_to_advanced)
+    recent_missions = base_xpath_to_mission_list(path_to_recent)
 
     driver.close()
 
-    return Schedule(mission_list, advanced_mission_list)
+    return Schedule(mission_list, advanced_mission_list, recent_missions)
