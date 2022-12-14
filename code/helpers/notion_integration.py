@@ -16,10 +16,10 @@ headers = {
     "content-type": "application/json"
 }
 
-databaseId = "73267a9a841b45bebd36993a7acef99e"
+missions_Database_Id = "73267a9a841b45bebd36993a7acef99e"
 
 
-def readDatabase(target_databaseId=databaseId):
+def readDatabase(target_databaseId):
     readUrl = f"https://api.notion.com/v1/databases/{target_databaseId}/query"
 
     res = requests.post(readUrl, json=payload, headers=headers)
@@ -28,13 +28,10 @@ def readDatabase(target_databaseId=databaseId):
 
     # Uncomment code below for inspecting json
     json_object = json.dumps(data, indent=4)
-    with open("../../database.json", "w") as file:
+    with open(f"../../{target_databaseId[5:]}_database.json", "w") as file:
         file.write(json_object)
 
     return data
-
-
-preset_database = readDatabase()
 
 
 def addMission(target_mission, mission_type, database):
@@ -55,7 +52,8 @@ def addMission(target_mission, mission_type, database):
                     if target_mission.telescope == test_entry.telescope:
                         return "mission already exists"
 
-    createPage(target_mission.target, target_mission.time_et.strftime("%Y-%m-%dT%H:%M:%S"), status, target_mission.telescope, mission_type)
+    createPage(target_mission.target, target_mission.time_et.strftime("%Y-%m-%dT%H:%M:%S"), status,
+               target_mission.telescope, mission_type)
     return f"added {target_mission.target}"
 
 
@@ -84,7 +82,43 @@ def updateMission(page, schedule):
     updateDatabaseStatus(page)
 
 
-def createPage(title, time, status, telescope, mission_type, target_databaseId=databaseId):
+def updateTelescope(page, telescope_availibility: dict):
+    updateUrl = f"https://api.notion.com/v1/pages/{page.id}"
+
+    status_message = telescope_availibility[page.telescope_name]
+
+    if "[ONLINE]" in status_message:
+        new_status = "Online"
+    else:
+        new_status = "Offline"
+
+    if "DAYLIGHT" in status_message:
+        new_time = "Day \u2600\ufe0f"
+    else:
+        new_time = "Night \ud83c\udf19"
+
+    updateData = {
+        "properties": {
+            "Status": {
+                "select": {
+                    "name": new_status
+                }
+            },
+            "Time": {
+                "select": {
+                    "name": new_time
+                }
+            }
+        }
+    }
+
+    data = json.dumps(updateData)
+    res = requests.request("PATCH", updateUrl, headers=headers, data=data)
+
+    return res.status_code
+
+
+def createPage(title, time, status, telescope, mission_type, target_databaseId=missions_Database_Id):
     createUrl = 'https://api.notion.com/v1/pages'
 
     if status not in ["waiting", "capturing", "done"]:

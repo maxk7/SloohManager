@@ -8,10 +8,14 @@ from time import sleep
 from mission import Mission
 from schedule import Schedule
 
-# Build mission schedule
+# Paths for mission schedule
 path_to_mission = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[4]'
 path_to_advanced = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[6]'
 path_to_recent = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[8]'
+
+# Path for telescope availibility
+
+path_to_telescopes = '//*[@id="app"]/div/nav/div/div/div/div[2]/div/div/div[2]/ul'
 
 
 def base_xpath_to_mission_list(base_path):
@@ -51,7 +55,41 @@ def base_xpath_to_mission_list(base_path):
     return rlist
 
 
-def build_schedule():
+def fetch_telescope_availability(base_path=path_to_telescopes):
+    # first click the button that shows the telescope dashboard
+    driver.find_element(By.XPATH, '//*[@id="app"]/div/nav/div/div/div/div[1]/div/div[1]/ul/li[3]/div/button').click()
+
+    sleep(0.15)
+
+    rdict = {}
+    scope_index = 1
+
+    while True:
+        scope_xpath_name = base_path + f'/li[{scope_index}]/a/div/div[1]/div[1]'
+        scope_is_online = base_path + f'/li[{scope_index}]/a/div/div[2]/div[1]'
+        scope_xpath_text = base_path + f'/li[{scope_index}]/a/div/div[1]/div[2]'
+
+        try:
+            driver.find_element(By.XPATH, scope_xpath_text)
+        except selenium.common.exceptions.NoSuchElementException:
+            if scope_index == 1:
+                print("telescope not found by xpath")
+            break  # reached the end of the mission schedule
+
+        telescope_name = driver.find_element(By.XPATH, scope_xpath_name).text
+        telescope_online_status = driver.find_element(By.XPATH, scope_is_online).get_attribute("class")
+        telescope_status_message = driver.find_element(By.XPATH, scope_xpath_text).text
+
+        if "is-online" in telescope_online_status:
+            telescope_status_message = "[ONLINE] " + telescope_status_message
+
+        rdict[telescope_name] = telescope_status_message
+        scope_index += 1
+
+    return rdict
+
+
+def build_schedule_fetch_telescopes():
     global driver
 
     # Import Credentials
@@ -94,6 +132,8 @@ def build_schedule():
     advanced_mission_list = base_xpath_to_mission_list(path_to_advanced)
     recent_missions = base_xpath_to_mission_list(path_to_recent)
 
+    telescope_availability = fetch_telescope_availability()  # get updated telescope information
+
     driver.close()
 
-    return Schedule(mission_list, advanced_mission_list, recent_missions)
+    return Schedule(mission_list, advanced_mission_list, recent_missions), telescope_availability
