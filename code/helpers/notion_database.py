@@ -7,7 +7,7 @@ def formatDatabase(databaseid):
     child_objects = []
 
     # create list of child objects
-    for object_index in range(0, len(database["results"]) - 1):
+    for object_index in range(0, len(database["results"])):
         child_objects.append(NotionPage(database["results"][object_index]))
 
     return NotionDatabase(child_objects)

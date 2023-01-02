@@ -2,8 +2,8 @@ import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 import yaml
-from time import sleep
 
 from mission import Mission
 from schedule import Schedule
@@ -18,6 +18,11 @@ path_to_recent = '//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/d
 path_to_telescopes = '//*[@id="app"]/div/nav/div/div/div/div[2]/div/div/div[2]/ul'
 
 
+def waitXPATHLoad(xpath):
+    WebDriverWait(driver, 10).until(lambda d:
+                                    d.find_element(By.XPATH, xpath).is_displayed())
+
+
 def base_xpath_to_mission_list(base_path):
     rlist = []
     mission_index = 1
@@ -29,7 +34,7 @@ def base_xpath_to_mission_list(base_path):
             driver.find_element(By.XPATH, mission_xpath)
         except selenium.common.exceptions.NoSuchElementException:
             if mission_index == 1:
-                print("no mission found in topic")
+                pass  # no missions found in topic
             break  # reached the end of the mission schedule
 
         mission_target = driver.find_element(By.XPATH, mission_xpath + '/div[1]/h4').text
@@ -57,9 +62,15 @@ def base_xpath_to_mission_list(base_path):
 
 def fetch_telescope_availability(base_path=path_to_telescopes):
     # first click the button that shows the telescope dashboard
-    driver.find_element(By.XPATH, '//*[@id="app"]/div/nav/div/div/div/div[1]/div/div[1]/ul/li[3]/div/button').click()
+    button_xpath = '//*[@id="app"]/div/nav/div/div/div/div[1]/div/div[1]/ul/li[3]/div/button'
 
-    sleep(0.15)
+    waitXPATHLoad(button_xpath)
+
+    button = driver.find_element(By.XPATH, button_xpath)
+    button.click()
+
+    # Wait for up to 10 seconds for the sidebar to become visible
+    waitXPATHLoad(base_path + '/li[1]/a/div/div[1]/div[1]')
 
     rdict = {}
     scope_index = 1
@@ -86,6 +97,11 @@ def fetch_telescope_availability(base_path=path_to_telescopes):
         rdict[telescope_name] = telescope_status_message
         scope_index += 1
 
+    try:
+        button.click()
+    except:
+        pass  # button not pressable
+
     return rdict
 
 
@@ -103,6 +119,8 @@ def build_schedule_fetch_telescopes():
     options.page_load_strategy = "none"
     driver = webdriver.Chrome(options=options)
 
+    print("[✔] started driver")
+
     # Load the Slooh login page
     driver.get("https://app.slooh.com/NewDashboard")
 
@@ -110,7 +128,7 @@ def build_schedule_fetch_telescopes():
     while True:
         try:
             submit = driver.find_element(By.CLASS_NAME, "login-btn")
-            print("[✔] page loaded")
+            print("[✔] loaded page")
             break
         except:
             pass
@@ -123,9 +141,9 @@ def build_schedule_fetch_telescopes():
     password.send_keys(slooh_password)
     submit.click()
 
-    print("[✔] successfully logged in")
+    print("[✔] logged in")
 
-    sleep(5)
+    waitXPATHLoad('//*[@id="app"]/div/section/div/div/div/div/div[1]/div/div[8]/div/div/div[1]/div[3]/h3')
 
     # Actual process of building the schedule
     mission_list = base_xpath_to_mission_list(path_to_mission)
@@ -135,5 +153,7 @@ def build_schedule_fetch_telescopes():
     telescope_availability = fetch_telescope_availability()  # get updated telescope information
 
     driver.close()
+
+    print("[-] closed driver")
 
     return Schedule(mission_list, advanced_mission_list, recent_missions), telescope_availability

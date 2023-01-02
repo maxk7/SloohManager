@@ -34,7 +34,7 @@ def readDatabase(target_databaseId):
     return data
 
 
-def addMission(target_mission, mission_type, database):
+def addMission(target_mission, mission_type, database, telescope_database):
     # Select Status
     if datetime.now() - timedelta(minutes=5) <= target_mission.time_et <= datetime.now():
         status = "capturing"
@@ -50,11 +50,20 @@ def addMission(target_mission, mission_type, database):
             if target_mission.target == test_entry.target:
                 if target_mission.time_et == test_entry.date:
                     if target_mission.telescope == test_entry.telescope:
-                        return "mission already exists"
+                        return  # the mission already exists
+
+    # get the page id of the related telescope
+    telescope_page_id = None
+
+    for telescope in telescope_database.objects:
+        if telescope.telescope_name == target_mission.telescope:
+            telescope_page_id = telescope.id
 
     createPage(target_mission.target, target_mission.time_et.strftime("%Y-%m-%dT%H:%M:%S"), status,
-               target_mission.telescope, mission_type)
-    return f"added {target_mission.target}"
+               target_mission.telescope, mission_type, telescope_page_id)
+
+    print(f"[+] mission to {target_mission.target}")
+    return
 
 
 def updateMission(page, schedule):
@@ -118,7 +127,7 @@ def updateTelescope(page, telescope_availibility: dict):
     return res.status_code
 
 
-def createPage(title, time, status, telescope, mission_type, target_databaseId=missions_Database_Id):
+def createPage(title, time, status, telescope, mission_type, telescope_page_id, target_databaseId=missions_Database_Id):
     createUrl = 'https://api.notion.com/v1/pages'
 
     if status not in ["waiting", "capturing", "done"]:
@@ -160,6 +169,13 @@ def createPage(title, time, status, telescope, mission_type, target_databaseId=m
                 "select": {
                     "name": mission_type
                 }
+            },
+            "Telescope Availability": {
+                "relation": [
+                    {
+                        "id": telescope_page_id
+                    }
+                ]
             }
         }
     }
@@ -169,7 +185,7 @@ def createPage(title, time, status, telescope, mission_type, target_databaseId=m
     res = requests.request("POST", createUrl, headers=headers, data=data)
 
     # Return the status code after operation was attempted
-    return res.status_code
+    return res
 
 
 def updateDatabaseStatus(page: NotionPage):
