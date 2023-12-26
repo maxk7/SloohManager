@@ -3,8 +3,9 @@ from helpers.notion_database import formatDatabase
 from helpers.notion_integration import updateTelescope, updateMission, addMission
 
 # Database IDs
-missions_Database_Id = "73267a9a841b45bebd36993a7acef99e"
-telescope_Database_Id = "fc5c7e6bdaaf4bf0b2d69bde59c914b0"
+# Replace these ids with the notion databases you've created
+missions_Database_Id = "REPLACE ID!"
+telescope_Database_Id = "REPLACE ID!"
 
 schedule, telescope_availability = build_schedule_fetch_telescopes()  # get info from slooh regarding user missions and telescope availibility
 missions_database = formatDatabase(missions_Database_Id)  # get the mission database from notion missions database
