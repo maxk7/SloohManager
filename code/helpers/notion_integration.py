@@ -16,7 +16,9 @@ headers = {
     "content-type": "application/json"
 }
 
-missions_Database_Id = "73267a9a841b45bebd36993a7acef99e"
+# Replace this id with the notion database you've created to store your missions in!
+# example: 73267a9a841b45bebd36993a7acef99e
+missions_Database_Id = "REPLACE THIS ID!"
 
 
 def readDatabase(target_databaseId):
