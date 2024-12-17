@@ -1,3 +1,6 @@
+![Orion Nebula](https://github.com/user-attachments/assets/634aec39-6c9e-4e73-a308-52bcdad85796)
+>The Orion Nebula, photographed by me using a Slooh telescope with the help of SloohManager
+
 # SloohManager
 
 A project designed to integrate with the Slooh platform for mission scheduling and telescope availability monitoring, with seamless synchronization with user's Notion databases.
