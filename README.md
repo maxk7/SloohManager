@@ -1,9 +1,10 @@
-![Orion Nebula](https://github.com/user-attachments/assets/634aec39-6c9e-4e73-a308-52bcdad85796)
->The Orion Nebula, photographed by me using a Slooh telescope with the help of SloohManager
+![IMG_7760](https://github.com/user-attachments/assets/86ebfee5-16e9-483c-970a-82c8e0775c4b)
+
+>Mirach (Star), photographed by me in 2022 using Slooh and SloohManager
 
 # SloohManager
 
-A project designed to integrate with the Slooh platform for mission scheduling and telescope availability monitoring, with seamless synchronization with user's Notion databases.
+A scheduling manager, mission log, and telescope dashboard integrated with the [Slooh](https://www.slooh.com/) platform, seamlessly synchronized with your Notion workspaces.
 
 ## Overview
 
